@@ -62,9 +62,14 @@ function App() {
 
   async function btnClick() {
     const data  = await generateSignature()
+    let msgToSignBytes: Uint8Array = new Uint8Array();
+    msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...data.addressBytes]);
+    msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...data.drandSignatureBytes]);
+
     let command = {
-      addressBytes: data.addressBytes,
-      drandSignatureBytes: data.drandSignatureBytes
+      name: "sign",
+      keyNo: 1,
+      message: msgToSignBytes
     };
 
     setDataAddress(data.addressBytes)

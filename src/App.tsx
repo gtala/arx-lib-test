@@ -63,7 +63,9 @@ function App() {
   async function btnClick() {
     const data  = await generateSignature()
     let msgToSignBytes: Uint8Array = new Uint8Array();
+    //@ts-ignore
     msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...data.addressBytes]);
+    //@ts-ignore
     msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...data.drandSignatureBytes]);
 
     let command = {

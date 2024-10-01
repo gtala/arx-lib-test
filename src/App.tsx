@@ -120,7 +120,7 @@ export const pbt_mint = async (
   const tx = new Transaction();
   tx.setGasBudget(100000000);
   tx.moveCall({
-    target: `${packageID}::pbt::pbt`,
+    target: `${packageID}::pbt::mint`,
     arguments: [
       tx.pure.vector("u8", Array.from(chipSignature)),
       tx.pure.vector("u8", Array.from(chipPK)),

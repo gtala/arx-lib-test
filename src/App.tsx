@@ -60,9 +60,11 @@ const getMessageToSign = async (
   msgToSign.push(drandSignatureBytes);
   let msgToSignBytes: Uint8Array = new Uint8Array();
   msgToSign.forEach((msg) => {
+    //@ts-ignore
     msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...msg]);
   });
   if (extra_byte) {
+    //@ts-ignore
     msgToSignBytes = new Uint8Array([...msgToSignBytes, 0]);
   }
 

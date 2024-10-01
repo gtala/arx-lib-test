@@ -1,5 +1,9 @@
 import React, {useState} from 'react';
 import './App.css';
+import {fromB64} from "@mysten/sui/utils";
+import {Ed25519Keypair} from "@mysten/sui/keypairs/ed25519";
+
+
 //@ts-ignore
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
@@ -37,45 +41,60 @@ const getLatestDRANDBeaconValue = async () => {
   return data;
 };
 
-const generateSignature = async (
+const getMessageToSign = async (
+    address: string,
+    extra_byte: boolean,
 ) => {
-  const msgToSign: Array<Uint8Array> = [];
+  console.log("address", address);
+  let msgToSign: Array<Uint8Array> = [];
   let addressBytes: Uint8Array = new Uint8Array(
-      Buffer.from("0xd2ad255a4a6d454ecb2f407f1fd7887bf623eac7ba935be25eceb7eda10bce06".slice(2), "hex"),
+      Buffer.from(address.slice(2), "hex"),
   );
-  //msgToSign.push(addressBytes);
-  console.log("addressBytes", addressBytes)
+  msgToSign.push(addressBytes);
 
   const drandData = await getLatestDRANDBeaconValue();
-  const drandSignatureBytes: Uint8Array = new Uint8Array(
+  console.log("drandData.signature", drandData.signature)
+  let drandSignatureBytes: Uint8Array = new Uint8Array(
       Buffer.from(drandData.signature, "hex"),
   );
-  // msgToSign.push(drandSignatureBytes);
-  console.log("drandSignatureBytes", drandSignatureBytes)
-  return { drandSignatureBytes, addressBytes}
-};
+  msgToSign.push(drandSignatureBytes);
+  let msgToSignBytes: Uint8Array = new Uint8Array();
+  msgToSign.forEach((msg) => {
+    msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...msg]);
+  });
+  if (extra_byte) {
+    msgToSignBytes = new Uint8Array([...msgToSignBytes, 0]);
+  }
 
+  return msgToSignBytes;
+};
 function App() {
   const [statusText, setStatusText] = useState('Click on the button');
   const [dataAdddess, setDataAddress] = useState(new Uint8Array([]));
   const [dataDrand, setDataDrand] = useState(new Uint8Array([]));
 
   async function btnClick() {
-    const data  = await generateSignature()
-    let msgToSignBytes: Uint8Array = new Uint8Array();
-    //@ts-ignore
-    msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...data.addressBytes]);
-    //@ts-ignore
-    msgToSignBytes = Uint8Array.from([...msgToSignBytes, ...data.drandSignatureBytes]);
+
+
+    let userPrivateKeyArray = new Array<number>();
+    userPrivateKeyArray = Array.from(fromB64("AHvhK7acqcgXdkSR+gE5jzTFXjvWvH7hdYOesk/MR+07"));
+    userPrivateKeyArray.shift(); // remove the first byte
+
+    const userKeypair = Ed25519Keypair.fromSecretKey(
+        Uint8Array.from(userPrivateKeyArray),
+    );
+    const userAddress = userKeypair.getPublicKey().toSuiAddress();
+
+    console.log("userAddress", userAddress)
+
+
+    const messageToSign  = await getMessageToSign(userAddress, false )
 
     let command = {
       name: "sign",
       keyNo: 1,
-      message: msgToSignBytes
+      message: messageToSign
     };
-
-    setDataAddress(data.addressBytes)
-    setDataDrand(data.drandSignatureBytes)
 
     let res;
 

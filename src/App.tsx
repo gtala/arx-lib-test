@@ -13,6 +13,41 @@ import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 
+function compressPublicKeyToUint8Array(hex: string): Uint8Array {
+  // Convert hex string to byte array
+  const uncompressedKey = hexToBytes(hex);
+
+  // Ensure the key starts with 0x04 (uncompressed format)
+  if (uncompressedKey[0] !== 0x04) {
+    throw new Error("Not a valid uncompressed public key");
+  }
+
+  // Extract x and y coordinates
+  const xCoord = uncompressedKey.slice(1, 33);  // First 32 bytes (after 0x04) is x-coordinate
+  const yCoord = uncompressedKey.slice(33);     // Next 32 bytes is y-coordinate
+
+  // Determine if y-coordinate is even or odd
+  const prefix = (yCoord[yCoord.length - 1] % 2 === 0) ? 0x02 : 0x03;
+
+  // Construct the compressed public key
+  const compressedKey = new Uint8Array(33);
+  compressedKey[0] = prefix; // Prefix (0x02 or 0x03)
+  compressedKey.set(xCoord, 1); // Set x-coordinate
+
+  return compressedKey;
+}
+
+// Helper function: Converts a hex string to a byte array (Uint8Array)
+function hexToBytes(hex: string): Uint8Array {
+  const bytes = new Uint8Array(hex.length / 2);
+  for (let i = 0; i < hex.length; i += 2) {
+    bytes[i / 2] = parseInt(hex.substring(i, i + 2), 16);
+  }
+  return bytes;
+}
+
+
+
 export const getSignatureAsUint8Array = async (
     r: string,
     s: string,
@@ -149,6 +184,7 @@ function App() {
   const [statusText, setStatusText] = useState('Click on the button');
   const [dataAdddess, setDataAddress] = useState(new Uint8Array([]));
   const [dataDrand, setDataDrand] = useState(new Uint8Array([]));
+  const [publickKey, setPublickKey] = useState(new Uint8Array([]));
 
   async function btnClick() {
     let userPrivateKeyArray = new Array<number>();
@@ -197,9 +233,13 @@ function App() {
 
       console.log("signature", signature)
 
+      const compressedKey = compressPublicKeyToUint8Array( res.publicKey);
+
+      setPublickKey(compressedKey)
+
       const mintRes = await pbt_mint(
           signature,
-          res.publicKey,
+          compressedKey,
           userKeypair,
       );
 
@@ -221,6 +261,7 @@ function App() {
         <button onClick={() => btnClick()}>Sign message 010203 using key #1</button>
         <p>{dataAdddess}</p>
         <p>{dataDrand}</p>
+        <>{publickKey}</>
       </div>
   );
 }

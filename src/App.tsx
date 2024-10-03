@@ -16,7 +16,6 @@ import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 function bytesToHex(bytes: number[]): string {
   return '0x' + bytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
-
  const readTheCorrectPublicKey = async (
     publicKeyDigest: string,
     signatureDigest: string
@@ -213,7 +212,7 @@ function App() {
     let command = {
       name: "sign",
       keyNo: 1,
-      digest: bytesToHex(Array.from(messageToSign))
+      digest: messageToSign
     };
 
     let res;

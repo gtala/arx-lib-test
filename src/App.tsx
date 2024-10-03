@@ -60,7 +60,7 @@ export const getSignatureAsUint8Array = async (
   // @ts-ignore
   const signature = new Uint8Array([...rBytes, ...sBytes, ...vByte]);
 
-  return signature;
+  return signature
 };
 
 export const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
@@ -185,6 +185,7 @@ function App() {
   const [dataAdddess, setDataAddress] = useState(new Uint8Array([]));
   const [dataDrand, setDataDrand] = useState(new Uint8Array([]));
   const [publickKey, setPublickKey] = useState(new Uint8Array([]));
+  const [stateSignature, setStateSignature] = useState(new Uint8Array([]));
 
   async function btnClick() {
     let userPrivateKeyArray = new Array<number>();
@@ -225,13 +226,14 @@ function App() {
         }
       });
 
-      let signature = await getSignatureAsUint8Array(
+/*      let signature = await getSignatureAsUint8Array(
           res.signature.raw.r,
           res.signature.raw.s,
           res.signature.raw.v
-      );
+      );*/
 
-      console.log("signature", signature)
+      let signature = res.signature.raw.r + res.signature.raw.s
+     setStateSignature(signature)
 
       const compressedKey = compressPublicKeyToUint8Array( res.publicKey);
 
@@ -262,6 +264,7 @@ function App() {
         <p>{dataAdddess}</p>
         <p>{dataDrand}</p>
         <>{publickKey}</>
+        <p>siganture {stateSignature}</p>
       </div>
   );
 }

@@ -9,8 +9,27 @@ import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 
 
 
+
 //@ts-ignore
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
+
+ const readTheCorrectPublicKey = async (
+    publicKeyDigest: string,
+    signatureDigest: string
+) => {
+  let pkey = Array.from(Buffer.from(publicKeyDigest, "hex"));
+  pkey.shift();
+  pkey = pkey.slice(0, 32);
+  //depends on last byte, unshift 2 or 3 to sub with last number to be even
+  if (pkey[pkey.length - 1] % 2 == 0) {
+    pkey.unshift(2);
+  } else {
+    pkey.unshift(3);
+  }
+  const pkey_final = Uint8Array.from(pkey);
+  const signature_final = Uint8Array.from(Buffer.from(signatureDigest, "hex"));
+  return [pkey_final, signature_final];
+};
 
 
 function compressPublicKeyToUint8Array(hex: string): Uint8Array {
@@ -226,22 +245,21 @@ function App() {
         }
       });
 
-/*      let signature = await getSignatureAsUint8Array(
-          res.signature.raw.r,
-          res.signature.raw.s,
-          res.signature.raw.v
-      );*/
 
       let signature = res.signature.raw.r + res.signature.raw.s
      setStateSignature(signature)
 
-      const compressedKey = compressPublicKeyToUint8Array( res.publicKey);
+/*      const compressedKey = compressPublicKeyToUint8Array(res.publicKey);
+      setPublickKey(compressedKey)*/
 
-      setPublickKey(compressedKey)
+      let [pkey_final, sig_final] = await readTheCorrectPublicKey(
+          res.publicKey,
+          signature
+      );
 
       const mintRes = await pbt_mint(
-          signature,
-          compressedKey,
+          sig_final,
+          pkey_final,
           userKeypair,
       );
 

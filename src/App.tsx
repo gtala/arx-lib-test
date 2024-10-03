@@ -17,20 +17,6 @@ function bytesToHex(bytes: number[]): string {
   return '0x' + bytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
 
-export const createMsgDigest = async (address: string, timestamp: number) => {
-  console.log("address", address);
-  console.log("timestamp", timestamp);
-
-  const addr_bytes = bcs.Address.serialize(address);
-  const ts_bytes = bcs.ser("u64", timestamp).toBytes();
-  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
-  msgToDigest.set(addr_bytes);
-  msgToDigest.set(ts_bytes, addr_bytes.length);
-  const msgDigestHex = uint8array2hex(sha256(msgToDigest));
-
-  return [msgDigestHex, timestamp];
-};
-
  const readTheCorrectPublicKey = async (
     publicKeyDigest: string,
     signatureDigest: string

@@ -7,11 +7,29 @@ import {getFullnodeUrl, SuiClient} from "@mysten/sui/client";
 import {Signer} from "@mysten/sui/cryptography"
 import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 
-
+import { bcs } from "@mysten/sui/bcs";
 
 
 //@ts-ignore
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
+
+function bytesToHex(bytes: number[]): string {
+  return '0x' + bytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
+}
+
+export const createMsgDigest = async (address: string, timestamp: number) => {
+  console.log("address", address);
+  console.log("timestamp", timestamp);
+
+  const addr_bytes = bcs.Address.serialize(address);
+  const ts_bytes = bcs.ser("u64", timestamp).toBytes();
+  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
+  msgToDigest.set(addr_bytes);
+  msgToDigest.set(ts_bytes, addr_bytes.length);
+  const msgDigestHex = uint8array2hex(sha256(msgToDigest));
+
+  return [msgDigestHex, timestamp];
+};
 
  const readTheCorrectPublicKey = async (
     publicKeyDigest: string,
@@ -65,22 +83,6 @@ function hexToBytes(hex: string): Uint8Array {
   return bytes;
 }
 
-
-
-export const getSignatureAsUint8Array = async (
-    r: string,
-    s: string,
-    v: number
-) => {
-  // Convert r, s values to Uint8Array
-  const rBytes = Uint8Array.from(Buffer.from(r, "hex"));
-  const sBytes = Uint8Array.from(Buffer.from(s, "hex"));
-  const vByte = Uint8Array.from([v]);
-  // @ts-ignore
-  const signature = new Uint8Array([...rBytes, ...sBytes, ...vByte]);
-
-  return signature
-};
 
 export const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
 const hexToUint8Array = (hex: any) => {
@@ -221,10 +223,11 @@ function App() {
 
     const messageToSign  = await getMessageToSign(userAddress, false )
 
+
     let command = {
       name: "sign",
       keyNo: 1,
-      message: messageToSign
+      digest: bytesToHex(Array.from(messageToSign))
     };
 
     let res;
@@ -246,7 +249,7 @@ function App() {
       });
 
       let signature = res.signature.raw.r + res.signature.raw.s
-     setStateSignature(signature)
+     setStateSignature(hexToBytes(signature))
 
       const compressedKey = compressPublicKeyToUint8Array(res.publicKey);
       setPublickKey(compressedKey)
@@ -257,7 +260,7 @@ function App() {
       );
 
       const mintRes = await pbt_mint(
-          sig_final,
+          hexToBytes(signature),
           compressedKey,
           userKeypair,
       );

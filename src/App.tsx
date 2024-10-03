@@ -190,12 +190,10 @@ export const pbt_mint = async (
 function uint8array2hex(uint8array: Uint8Array): string {
   return Buffer.from(uint8array).toString("hex");
 }
-const createMsgDigest =  (address: string, timestamp: number) => {
-  console.log("address", address);
-  console.log("timestamp", timestamp);
-
+const createMsgDigest =  async (address: string, timestamp: number) => {
+  const drandData = await getLatestDRANDBeaconValue();
   const addr_bytes = bcs.Address.serialize(address).toBytes()
-  const ts_bytes = bcs.u64().serialize(timestamp).toBytes()
+  const ts_bytes = bcs.vector(bcs.u8()).serialize(Array.from(new Uint8Array(Buffer.from(drandData.signature, "hex")))).toBytes()
   const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
   msgToDigest.set(addr_bytes);
   msgToDigest.set(ts_bytes, addr_bytes.length);
@@ -227,7 +225,7 @@ function App() {
 
     const messageToSign  = await getMessageToSign(userAddress, false )
 
-    const message =  createMsgDigest(userAddress, Date.now())
+    const message =  await createMsgDigest(userAddress, Date.now())
 
     let command = {
       name: "sign",

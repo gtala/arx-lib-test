@@ -245,21 +245,20 @@ function App() {
         }
       });
 
-
       let signature = res.signature.raw.r + res.signature.raw.s
      setStateSignature(signature)
 
-/*      const compressedKey = compressPublicKeyToUint8Array(res.publicKey);
-      setPublickKey(compressedKey)*/
+      const compressedKey = compressPublicKeyToUint8Array(res.publicKey);
+      setPublickKey(compressedKey)
 
-      let [pkey_final, sig_final] = await readTheCorrectPublicKey(
+      let [, sig_final] = await readTheCorrectPublicKey(
           res.publicKey,
-          signature
+          res.signature.raw.r + res.signature.raw.s
       );
 
       const mintRes = await pbt_mint(
           sig_final,
-          pkey_final,
+          compressedKey,
           userKeypair,
       );
 

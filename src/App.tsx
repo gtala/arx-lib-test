@@ -190,7 +190,7 @@ export const pbt_mint = async (
 function uint8array2hex(uint8array: Uint8Array): string {
   return Buffer.from(uint8array).toString("hex");
 }
-const createMsgDigest = async (address: string, timestamp: number) => {
+const createMsgDigest =  (address: string, timestamp: number) => {
   console.log("address", address);
   console.log("timestamp", timestamp);
 
@@ -227,10 +227,12 @@ function App() {
 
     const messageToSign  = await getMessageToSign(userAddress, false )
 
+    const message =  createMsgDigest(userAddress, Date.now())
+
     let command = {
       name: "sign",
       keyNo: 1,
-      digest: createMsgDigest(userAddress, Date.now())
+      digest: message
     };
 
     let res;

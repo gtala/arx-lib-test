@@ -8,6 +8,7 @@ import {Signer} from "@mysten/sui/cryptography"
 import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 
 import { bcs } from "@mysten/sui/bcs";
+import { sha256 } from "@noble/hashes/sha256";
 
 
 //@ts-ignore
@@ -186,12 +187,30 @@ export const pbt_mint = async (
   return response;
 };
 
+function uint8array2hex(uint8array: Uint8Array): string {
+  return Buffer.from(uint8array).toString("hex");
+}
+const createMsgDigest = async (address: string, timestamp: number) => {
+  console.log("address", address);
+  console.log("timestamp", timestamp);
+
+  const addr_bytes = bcs.Address.serialize(address).toBytes()
+  const ts_bytes = bcs.u64().serialize(timestamp).toBytes()
+  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
+  msgToDigest.set(addr_bytes);
+  msgToDigest.set(ts_bytes, addr_bytes.length);
+  return uint8array2hex(sha256(msgToDigest));
+};
+
+
 function App() {
   const [statusText, setStatusText] = useState('Click on the button');
   const [dataAdddess, setDataAddress] = useState(new Uint8Array([]));
   const [dataDrand, setDataDrand] = useState(new Uint8Array([]));
   const [publickKey, setPublickKey] = useState(new Uint8Array([]));
   const [stateSignature, setStateSignature] = useState(new Uint8Array([]));
+
+
 
   async function btnClick() {
     let userPrivateKeyArray = new Array<number>();
@@ -208,11 +227,10 @@ function App() {
 
     const messageToSign  = await getMessageToSign(userAddress, false )
 
-
     let command = {
       name: "sign",
       keyNo: 1,
-      digest: messageToSign
+      digest: createMsgDigest(userAddress, Date.now())
     };
 
     let res;

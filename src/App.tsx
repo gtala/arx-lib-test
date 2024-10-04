@@ -17,24 +17,6 @@ import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 function bytesToHex(bytes: number[]): string {
   return '0x' + bytes.map(byte => byte.toString(16).padStart(2, '0')).join('');
 }
- const readTheCorrectPublicKey = async (
-    publicKeyDigest: string,
-    signatureDigest: string
-) => {
-  let pkey = Array.from(Buffer.from(publicKeyDigest, "hex"));
-  pkey.shift();
-  pkey = pkey.slice(0, 32);
-  //depends on last byte, unshift 2 or 3 to sub with last number to be even
-  if (pkey[pkey.length - 1] % 2 == 0) {
-    pkey.unshift(2);
-  } else {
-    pkey.unshift(3);
-  }
-  const pkey_final = Uint8Array.from(pkey);
-  const signature_final = Uint8Array.from(Buffer.from(signatureDigest, "hex"));
-  return [pkey_final, signature_final];
-};
-
 
 function compressPublicKeyToUint8Array(hex: string): Uint8Array {
   // Convert hex string to byte array
@@ -138,6 +120,27 @@ const getMessageToSign = async (
 const packageID = '0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
 const adminCap = "0xe6016206b1177cb44c1467a4aa43dc0e8838b8030dc03ca501c281895ced8d58"
 const pbtArchive = "0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
+
+export const readTheCorrectPublicKey = async (
+    publicKeyDigest: string,
+    signatureDigest: string
+) => {
+  let pkey = Array.from(Buffer.from(publicKeyDigest, "hex"));
+  pkey.shift();
+  pkey = pkey.slice(0, 32);
+
+  // Depending on the last byte, unshift 2 or 3 to ensure the last number is even
+  if (pkey[pkey.length - 1] % 2 == 0) {
+    pkey.unshift(2);
+  } else {
+    pkey.unshift(3);
+  }
+
+  const pkey_final = Uint8Array.from(pkey);
+  const signature_final = Uint8Array.from(Buffer.from(signatureDigest, "hex"));
+
+  return [pkey_final, signature_final];
+};
 
 
 
@@ -257,14 +260,14 @@ function App() {
       const compressedKey = compressPublicKeyToUint8Array(res.publicKey);
       setPublickKey(compressedKey)
 
-      let [, sig_final] = await readTheCorrectPublicKey(
+      let [pkey_final, signature_final] = await readTheCorrectPublicKey(
           res.publicKey,
           res.signature.raw.r + res.signature.raw.s
       );
 
       const mintRes = await pbt_mint(
-          hexToBytes(signature),
-          compressedKey,
+          signature_final,
+          pkey_final,
           userKeypair,
       );
 

@@ -265,6 +265,8 @@ function App() {
           res.signature.raw.r + res.signature.raw.s
       );
 
+      console.log(pkey_final)
+
       const mintRes = await pbt_mint(
           signature_final,
           pkey_final,

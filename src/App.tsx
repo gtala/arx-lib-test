@@ -10,11 +10,39 @@ import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 import { bcs } from "@mysten/sui/bcs";
 import { sha256 } from "@noble/hashes/sha256";
 
-
 //@ts-ignore
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
-export const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
+const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
+const PBT_PACKAGE_ID = '0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+const ARCHIVE_OBJECT_ID = "0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
+
+
+function uint8array2hex(uint8array: Uint8Array): string {
+  return Buffer.from(uint8array).toString("hex");
+}
+const buildMessageToSign =  async (address: string) => {
+
+  const drandData = await getLatestDRANDBeaconValue();
+  const addr_bytes = bcs.Address.serialize(address).toBytes()
+  const ts_bytes = bcs.vector(bcs.u8()).serialize(Array.from(new Uint8Array(Buffer.from(drandData.signature, "hex")))).toBytes()
+  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
+  msgToDigest.set(addr_bytes);
+  msgToDigest.set(ts_bytes, addr_bytes.length);
+  return uint8array2hex(sha256(msgToDigest));
+};
+
+function getUserKeyPairData() {
+  let userPrivateKeyArray = new Array<number>();
+  userPrivateKeyArray = Array.from(fromB64("AHvhK7acqcgXdkSR+gE5jzTFXjvWvH7hdYOesk/MR+07"));
+  userPrivateKeyArray.shift(); // remove the first byte
+  const userKeypair = Ed25519Keypair.fromSecretKey(
+      Uint8Array.from(userPrivateKeyArray),
+  );
+  const userAddress = userKeypair.getPublicKey().toSuiAddress();
+  console.log("userAddress", userAddress)
+  return {userKeypair, userAddress};
+}
 
 const getLatestDRANDBeaconValue = async () => {
   const response = await fetch("https://api.drand.sh/public/latest");
@@ -28,10 +56,7 @@ const getLatestDRANDBeaconValue = async () => {
   return data;
 };
 
-const PBT_PACKAGE_ID = '0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-const ARCHIVE_OBJECT_ID = "0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
-
-export const readTheCorrectPublicKey = async (
+const readTheCorrectPublicKey = async (
     publicKeyDigest: string,
     signatureDigest: string
 ) => {
@@ -52,7 +77,7 @@ export const readTheCorrectPublicKey = async (
   return [pkey_final, signature_final];
 };
 
-export const pbt_mint = async (
+const pbt_mint = async (
     chipSignature: Uint8Array,
     chipPK: Uint8Array,
     keyPair: Signer,
@@ -98,39 +123,9 @@ export const pbt_mint = async (
   return response;
 };
 
-function uint8array2hex(uint8array: Uint8Array): string {
-  return Buffer.from(uint8array).toString("hex");
-}
-const buildMessageToSign =  async (address: string) => {
-
-  const drandData = await getLatestDRANDBeaconValue();
-  const addr_bytes = bcs.Address.serialize(address).toBytes()
-  const ts_bytes = bcs.vector(bcs.u8()).serialize(Array.from(new Uint8Array(Buffer.from(drandData.signature, "hex")))).toBytes()
-  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
-  msgToDigest.set(addr_bytes);
-  msgToDigest.set(ts_bytes, addr_bytes.length);
-  return uint8array2hex(sha256(msgToDigest));
-};
-
-function getUserKeyPairData() {
-  let userPrivateKeyArray = new Array<number>();
-  userPrivateKeyArray = Array.from(fromB64("AHvhK7acqcgXdkSR+gE5jzTFXjvWvH7hdYOesk/MR+07"));
-  userPrivateKeyArray.shift(); // remove the first byte
-  const userKeypair = Ed25519Keypair.fromSecretKey(
-      Uint8Array.from(userPrivateKeyArray),
-  );
-  const userAddress = userKeypair.getPublicKey().toSuiAddress();
-  console.log("userAddress", userAddress)
-  return {userKeypair, userAddress};
-}
 
 function App() {
   const [statusText, setStatusText] = useState('Click on the button');
-  const [dataAdddess, setDataAddress] = useState(new Uint8Array([]));
-  const [dataDrand, setDataDrand] = useState(new Uint8Array([]));
-  const [publickKey, setPublickKey] = useState(new Uint8Array([]));
-  const [stateSignature, setStateSignature] = useState(new Uint8Array([]));
-
 
   async function btnReadChipAndMintPBT() {
 
@@ -189,11 +184,7 @@ function App() {
             <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
                 {statusText}
             </pre>
-        <button onClick={() => btnReadChipAndMintPBT()}>Sign message 010203 using key #1</button>
-        <p>{dataAdddess}</p>
-        <p>{dataDrand}</p>
-        <>{publickKey}</>
-        <p>siganture {stateSignature}</p>
+        <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>
       </div>
   );
 }

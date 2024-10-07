@@ -15,7 +15,7 @@ import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
 const PBT_PACKAGE_ID = '0x5d986537570cc92eb4d19b5976d9f11cc8f229bba7729bb49560799f6ff01841'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-const ARCHIVE_OBJECT_ID = '0x981f746e77a38f88f6d86175e99a28a6922145a93ecc6086236cd98955b6110d'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
+const ARCHIVE_OBJECT_ID = '0x6ecb05a49f4df21097870e212676623b2a589791ae1ae1e45841099f09b3a170'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
 
 
 function uint8array2hex(uint8array: Uint8Array): string {

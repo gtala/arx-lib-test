@@ -14,8 +14,8 @@ import { sha256 } from "@noble/hashes/sha256";
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
-const PBT_PACKAGE_ID = '0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-const ARCHIVE_OBJECT_ID = "0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
+const PBT_PACKAGE_ID = '0x64be9efe3c8e960f1f3314affb2c99a615ab038235174e7a0f5c65ff8177cdfb'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+const ARCHIVE_OBJECT_ID = '0x981f746e77a38f88f6d86175e99a28a6922145a93ecc6086236cd98955b6110d'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
 
 
 function uint8array2hex(uint8array: Uint8Array): string {
@@ -28,7 +28,7 @@ const buildMessageToSign =  async (address: string) => {
   const ts_bytes = bcs.vector(bcs.u8()).serialize(Array.from(new Uint8Array(Buffer.from(drandData.signature, "hex")))).toBytes()
   const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
   msgToDigest.set(addr_bytes);
-  msgToDigest.set(ts_bytes, addr_bytes.length);
+ // msgToDigest.set(ts_bytes, addr_bytes.length);
   return uint8array2hex(sha256(msgToDigest));
 };
 

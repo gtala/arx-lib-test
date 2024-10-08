@@ -162,14 +162,14 @@ function App() {
 
       console.log(pkey_final, signature_final)
 
-      // 4) Call Mint PBT function
+/*      // 4) Call Mint PBT function
       const mintRes = await pbt_mint(
           signature_final,
           pkey_final,
           userKeypair,
       );
 
-      console.log("mintRes", mintRes.digest)
+      console.log("mintRes", mintRes.digest)*/
 
       // the command has succeeded, display the result to the user
       setStatusText(JSON.stringify(res, null, 4));

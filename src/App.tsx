@@ -164,6 +164,7 @@ function App() {
 
 
       const tx = new Transaction();
+      tx.setGasBudget(1000000);
       tx.moveCall({
         target: `${PBT_PACKAGE_ID}::merch::prove_physical_ownership`,
         arguments: [

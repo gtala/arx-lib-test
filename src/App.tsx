@@ -14,8 +14,8 @@ import { sha256 } from "@noble/hashes/sha256";
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
-const PBT_PACKAGE_ID = '0x5d986537570cc92eb4d19b5976d9f11cc8f229bba7729bb49560799f6ff01841'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-const ARCHIVE_OBJECT_ID = '0x6ecb05a49f4df21097870e212676623b2a589791ae1ae1e45841099f09b3a170'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
+const PBT_PACKAGE_ID = '0x874bb249c4119df5de655c982b4d4eefdb2bba9f4a807ad29ff0a19914b47a42'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+const ARCHIVE_OBJECT_ID = '0xcfcd1cfc2ed70ac84ee6b655633b8fe1dd2323c51e9840b8f1670156d059dfd8'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
 
 
 function uint8array2hex(uint8array: Uint8Array): string {
@@ -162,14 +162,41 @@ function App() {
 
       console.log(pkey_final, signature_final)
 
-/*      // 4) Call Mint PBT function
-      const mintRes = await pbt_mint(
-          signature_final,
-          pkey_final,
-          userKeypair,
-      );
 
-      console.log("mintRes", mintRes.digest)*/
+      const tx = new Transaction();
+      tx.moveCall({
+        target: `${PBT_PACKAGE_ID}::merch::prove_physical_ownership`,
+        arguments: [
+          tx.pure.vector("u8", Array.from(pkey_final)),
+          tx.pure.vector("u8", Array.from(signature_final)),
+          tx.pure.u64(Date.now()),
+          tx.object(SUI_CLOCK_OBJECT_ID),
+        ],
+      });
+
+      const response = await mySuiClient.signAndExecuteTransaction({
+        signer: userKeypair,
+        transaction: tx,
+        requestType: "WaitForLocalExecution",
+        options: {
+          showEffects: true,
+          showEvents: true,
+          showObjectChanges: true,
+        },
+      });
+
+      console.log(response.digest)
+
+
+
+      /*      // 4) Call Mint PBT function
+            const mintRes = await pbt_mint(
+                signature_final,
+                pkey_final,
+                userKeypair,
+            );
+
+            console.log("mintRes", mintRes.digest)*/
 
       // the command has succeeded, display the result to the user
       setStatusText(JSON.stringify(res, null, 4));

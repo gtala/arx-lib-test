@@ -4,30 +4,87 @@ import {fromB64} from "@mysten/sui/utils";
 import {Ed25519Keypair} from "@mysten/sui/keypairs/ed25519";
 import {Transaction} from "@mysten/sui/transactions";
 import {getFullnodeUrl, SuiClient} from "@mysten/sui/client";
-import {Signer} from "@mysten/sui/cryptography"
 import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
-
-import { bcs } from "@mysten/sui/bcs";
-import { sha256 } from "@noble/hashes/sha256";
-
 //@ts-ignore
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
-const PBT_PACKAGE_ID = '0x83e0c6603d669f85740f84af4ffab572974df72898905730efd49c29701d9302'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-const ARCHIVE_OBJECT_ID = '0x44f652dcd235d0a29a8231c3a57459580812022fdc0e5a0bdb0af9e8d85c5a9d'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
+const PBT_PACKAGE_ID = '0xcdb598fa18496f01295b53c711f19b756de8f813368de6054c7f55ae061f603e'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+
+function App() {
+  const [statusText, setStatusText] = useState('Click on the button');
+
+  const haloOptions = {
+    statusCallback: (cause: any) => {
+      if (cause === "init") {
+        setStatusText("Please tap the tag to the back of your smartphone and hold it...");
+      } else if (cause === "retry") {
+        setStatusText("Something went wrong, please try to tap the tag again...");
+      } else if (cause === "scanned") {
+        setStatusText("Tag scanned successfully, post-processing the result...");
+      } else {
+        setStatusText(cause);
+      }
+    }
+  }
+
+  async function btnReadChipAndMintPBT() {
+
+    //1) create signer KeyPair
+    const {userKeypair, userAddress} = getUserKeyPairData();
+
+    let scannedResult;
+
+    try {
+      scannedResult = await execHaloCmdWeb({
+        name: "sign",
+        keyNo: 1,
+        digest: ''
+      }, haloOptions);
+
+      let [pkey_final, signature_final] = await readTheCorrectPublicKey(
+          scannedResult.publicKey,
+          scannedResult.signature.raw.r + scannedResult.signature.raw.s
+      );
 
 
-function uint8array2hex(uint8array: Uint8Array): string {
-  return Buffer.from(uint8array).toString("hex");
+      const tx = new Transaction();
+      tx.setGasBudget(2000000);
+      tx.moveCall({
+        target:`${PBT_PACKAGE_ID}::signature::verify_signature_v2`,
+        arguments: [
+          tx.pure.vector("u8", Array.from(Buffer.from("6a4727823b14b210a22d7a41da2b484e7aab5d89af3a4b8e99cda3feed5dd7915e212be7ab47e40b843387e61b95dbfb26c6f8c5e2301d78a8d9172ad55a52aa", "hex"))),
+          tx.pure.vector("u8", Array.from(Buffer.from("029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964", "hex"))),
+          tx.pure.vector("u8", Array.from(Buffer.from("029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964", "hex"))),
+        ],
+      });
+      const response = await mySuiClient.signAndExecuteTransaction({
+        signer: userKeypair,
+        transaction: tx,
+        requestType: "WaitForLocalExecution",
+        options: {
+          showEffects: true,
+          showEvents: true,
+          showObjectChanges: true,
+        },
+      });
+
+      console.log(response.digest)
+      setStatusText(JSON.stringify(scannedResult, null, 4));
+    } catch (e) {
+      setStatusText('Scanning failed, click on the button again to retry. Details: ' + String(e));
+    }
+  }
+
+  return (
+      <div className="App">
+            <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
+                {statusText}
+            </pre>
+        <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>
+      </div>
+  );
 }
-const buildMessageToSign =  async (address: string) => {
-
-  const addr_bytes = bcs.Address.serialize(address).toBytes()
-  const msgToDigest = new Uint8Array(addr_bytes.length);
-  msgToDigest.set(addr_bytes);
-  return uint8array2hex(sha256(msgToDigest));
-};
 
 function getUserKeyPairData() {
   let userPrivateKeyArray = new Array<number>();
@@ -40,18 +97,6 @@ function getUserKeyPairData() {
   console.log("userAddress", userAddress)
   return {userKeypair, userAddress};
 }
-
-const getLatestDRANDBeaconValue = async () => {
-  const response = await fetch("https://api.drand.sh/public/latest");
-
-  // Check if the response is ok (status code in the range 200-299)
-  if (!response.ok) {
-    throw new Error(`HTTP error! status: ${response.status}`);
-  }
-
-  const data = await response.json(); // Parse the JSON from the response
-  return data;
-};
 
 const readTheCorrectPublicKey = async (
     publicKeyDigest: string,
@@ -70,148 +115,7 @@ const readTheCorrectPublicKey = async (
 
   const pkey_final = Uint8Array.from(pkey);
   const signature_final = Uint8Array.from(Buffer.from(signatureDigest, "hex"));
-
   return [pkey_final, signature_final];
 };
-
-const pbt_mint = async (
-    chipSignature: Uint8Array,
-    chipPK: Uint8Array,
-    keyPair: Signer,
-) => {
-  // Get the latest DRAND beacon value
-  const drandBeaconValue = await getLatestDRANDBeaconValue();
-
-  // Get the bytes from the DRAND signature.
-  let drandSignatureBytes: Uint8Array = new Uint8Array(
-      Buffer.from(drandBeaconValue.signature, "hex"),
-  );
-
-  // Get the bytes for the previous DRAND signature.
-  let drandPreviousSignatureBytes: Uint8Array = new Uint8Array(
-      Buffer.from(drandBeaconValue.previous_signature, "hex"),
-  );
-
-  const tx = new Transaction();
-  tx.setGasBudget(100000000);
-  tx.moveCall({
-    target: `${PBT_PACKAGE_ID}::pbt::mint`,
-    arguments: [
-      tx.pure.vector("u8", Array.from(chipSignature)),
-      tx.pure.vector("u8", Array.from(chipPK)),
-      tx.pure.vector("u8", Array.from(drandSignatureBytes)),
-      tx.pure.vector("u8", Array.from(drandPreviousSignatureBytes)),
-      tx.pure.u64(drandBeaconValue.round),
-      tx.object(ARCHIVE_OBJECT_ID),
-      tx.object(SUI_CLOCK_OBJECT_ID),
-    ],
-  });
-
-  const response = await mySuiClient.signAndExecuteTransaction({
-    signer: keyPair,
-    transaction: tx,
-    requestType: "WaitForLocalExecution",
-    options: {
-      showEffects: true,
-      showEvents: true,
-      showObjectChanges: true,
-    },
-  });
-  return response;
-};
-
-
-function App() {
-  const [statusText, setStatusText] = useState('Click on the button');
-
-  async function btnReadChipAndMintPBT() {
-
-    //1) create signer KeyPair
-    const {userKeypair, userAddress} = getUserKeyPairData();
-
-    let res;
-
-    try {
-      // 2) Get signed message
-      res = await execHaloCmdWeb({
-        name: "sign",
-        keyNo: 1,
-        digest: await buildMessageToSign(userAddress)
-      }, {
-        statusCallback: (cause: any) => {
-          if (cause === "init") {
-            setStatusText("Please tap the tag to the back of your smartphone and hold it...");
-          } else if (cause === "retry") {
-            setStatusText("Something went wrong, please try to tap the tag again...");
-          } else if (cause === "scanned") {
-            setStatusText("Tag scanned successfully, post-processing the result...");
-          } else {
-            setStatusText(cause);
-          }
-        }
-      });
-
-    // 3) format signed message and pk
-      let [pkey_final, signature_final] = await readTheCorrectPublicKey(
-          res.publicKey,
-          res.signature.raw.r + res.signature.raw.s
-      );
-
-      console.log(pkey_final, signature_final)
-
-
-      const tx = new Transaction();
-      tx.setGasBudget(1000000);
-      tx.moveCall({
-        target: `${PBT_PACKAGE_ID}::merch::prove_physical_ownership`,
-        arguments: [
-          tx.pure.vector("u8", Array.from(pkey_final)),
-          tx.pure.vector("u8", Array.from(signature_final)),
-          tx.pure.u64(Date.now()),
-          tx.object(SUI_CLOCK_OBJECT_ID),
-        ],
-      });
-
-      const response = await mySuiClient.signAndExecuteTransaction({
-        signer: userKeypair,
-        transaction: tx,
-        requestType: "WaitForLocalExecution",
-        options: {
-          showEffects: true,
-          showEvents: true,
-          showObjectChanges: true,
-        },
-      });
-
-      console.log(response.digest)
-
-
-
-      /*      // 4) Call Mint PBT function
-            const mintRes = await pbt_mint(
-                signature_final,
-                pkey_final,
-                userKeypair,
-            );
-
-            console.log("mintRes", mintRes.digest)*/
-
-      // the command has succeeded, display the result to the user
-      setStatusText(JSON.stringify(res, null, 4));
-    } catch (e) {
-      // the command has failed, display error to the user
-      setStatusText('Scanning failed, click on the button again to retry. Details: ' + String(e));
-    }
-  }
-
-  return (
-      <div className="App">
-            <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
-                {statusText}
-            </pre>
-        <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>
-      </div>
-  );
-}
 
 export default App;

@@ -7,10 +7,12 @@ import {getFullnodeUrl, SuiClient} from "@mysten/sui/client";
 import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 //@ts-ignore
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
+import { sha256 } from "@noble/hashes/sha256";
+
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
 const PBT_PACKAGE_ID = '0xcdb598fa18496f01295b53c711f19b756de8f813368de6054c7f55ae061f603e'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-
+const message = 'bcf83051a4d206c6e43d7eaa4c75429737ac0d5ee08ee68430443bd815e6ac05'
 function App() {
   const [statusText, setStatusText] = useState('Click on the button');
 
@@ -32,16 +34,14 @@ function App() {
 
     //1) create signer KeyPair
     const {userKeypair, userAddress} = getUserKeyPairData();
-
     let scannedResult;
 
-    const message = 'bcf83051a4d206c6e43d7eaa4c75429737ac0d5ee08ee68430443bd815e6ac05'
 
     try {
       scannedResult = await execHaloCmdWeb({
         name: "sign",
         keyNo: 1,
-        digest: message
+        digest: createMsgDigest(message)
       }, haloOptions);
 
       let [pkey_final, signature_final] = await readTheCorrectPublicKey(
@@ -122,5 +122,20 @@ const readTheCorrectPublicKey = async (
   const signature_final = Uint8Array.from(Buffer.from(signatureDigest, "hex"));
   return [pkey_final, signature_final];
 };
+
+export const createMsgDigest = async (message: string) => {
+  const message_bytes =  Array.from(Buffer.from(message, "hex"))
+  const msgToDigest = new Uint8Array(message_bytes.length);
+  msgToDigest.set(message_bytes);
+  const msgDigestHex = uint8array2hex(sha256(msgToDigest));
+
+  return msgDigestHex
+};
+
+function uint8array2hex(uint8array: Uint8Array): string {
+  return Buffer.from(uint8array).toString("hex");
+}
+
+
 
 export default App;

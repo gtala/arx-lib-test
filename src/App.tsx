@@ -14,8 +14,8 @@ import { sha256 } from "@noble/hashes/sha256";
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
-const PBT_PACKAGE_ID = '0x874bb249c4119df5de655c982b4d4eefdb2bba9f4a807ad29ff0a19914b47a42'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-const ARCHIVE_OBJECT_ID = '0xcfcd1cfc2ed70ac84ee6b655633b8fe1dd2323c51e9840b8f1670156d059dfd8'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
+const PBT_PACKAGE_ID = '0xde0bd3ebe2439cf58edb190d150c6d31df30056953f437c96965e830a8c23cc1'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+const ARCHIVE_OBJECT_ID = '0x44f652dcd235d0a29a8231c3a57459580812022fdc0e5a0bdb0af9e8d85c5a9d'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
 
 
 function uint8array2hex(uint8array: Uint8Array): string {
@@ -23,12 +23,9 @@ function uint8array2hex(uint8array: Uint8Array): string {
 }
 const buildMessageToSign =  async (address: string) => {
 
-  const drandData = await getLatestDRANDBeaconValue();
   const addr_bytes = bcs.Address.serialize(address).toBytes()
-  const ts_bytes = bcs.vector(bcs.u8()).serialize(Array.from(new Uint8Array(Buffer.from(drandData.signature, "hex")))).toBytes()
-  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
+  const msgToDigest = new Uint8Array(addr_bytes.length);
   msgToDigest.set(addr_bytes);
- // msgToDigest.set(ts_bytes, addr_bytes.length);
   return uint8array2hex(sha256(msgToDigest));
 };
 

@@ -41,7 +41,7 @@ function App() {
       scannedResult = await execHaloCmdWeb({
         name: "sign",
         keyNo: 1,
-        digest: message
+        digest: "bcf83051a4d206c6e43d7eaa4c75429737ac0d5ee08ee68430443bd815e6ac05"
       }, haloOptions);
 
       let [pkey_final, signature_final] = await readTheCorrectPublicKey(

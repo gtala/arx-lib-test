@@ -123,7 +123,7 @@ const readTheCorrectPublicKey = async (
   return [pkey_final, signature_final];
 };
 
-export const createMsgDigest = async (message: string) => {
+export const createMsgDigest =  (message: string) => {
   const message_bytes =  Array.from(Buffer.from(message, "hex"))
   const msgToDigest = new Uint8Array(message_bytes.length);
   msgToDigest.set(message_bytes);

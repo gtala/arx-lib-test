@@ -35,11 +35,13 @@ function App() {
 
     let scannedResult;
 
+    const message = '029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964'
+
     try {
       scannedResult = await execHaloCmdWeb({
         name: "sign",
         keyNo: 1,
-        digest: ''
+        digest: message
       }, haloOptions);
 
       let [pkey_final, signature_final] = await readTheCorrectPublicKey(
@@ -55,7 +57,7 @@ function App() {
         arguments: [
           tx.pure.vector("u8", Array.from(Buffer.from("6a4727823b14b210a22d7a41da2b484e7aab5d89af3a4b8e99cda3feed5dd7915e212be7ab47e40b843387e61b95dbfb26c6f8c5e2301d78a8d9172ad55a52aa", "hex"))),
           tx.pure.vector("u8", Array.from(Buffer.from("029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964", "hex"))),
-          tx.pure.vector("u8", Array.from(Buffer.from("029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964", "hex"))),
+          tx.pure.vector("u8", Array.from(Buffer.from(message, "hex"))),
         ],
       });
       const response = await mySuiClient.signAndExecuteTransaction({

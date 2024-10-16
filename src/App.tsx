@@ -9,7 +9,7 @@ import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
-const PBT_PACKAGE_ID = '0x874bb249c4119df5de655c982b4d4eefdb2bba9f4a807ad29ff0a19914b47a42'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+const PBT_PACKAGE_ID = '0xcdb598fa18496f01295b53c711f19b756de8f813368de6054c7f55ae061f603e'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
 
 function App() {
   const [statusText, setStatusText] = useState('Click on the button');
@@ -47,18 +47,17 @@ function App() {
           scannedResult.signature.raw.r + scannedResult.signature.raw.s
       );
 
+
       const tx = new Transaction();
-      tx.setGasBudget(1000000);
+      tx.setGasBudget(2000000);
       tx.moveCall({
-        target: `${PBT_PACKAGE_ID}::merch::prove_physical_ownership`,
+        target:`${PBT_PACKAGE_ID}::signature::verify_signature_v2`,
         arguments: [
-          tx.pure.vector("u8", Array.from(pkey_final)),
-          tx.pure.vector("u8", Array.from(signature_final)),
-          tx.pure.u64(Date.now()),
-          tx.object(SUI_CLOCK_OBJECT_ID),
+          tx.pure.vector("u8", Array.from(Buffer.from("6a4727823b14b210a22d7a41da2b484e7aab5d89af3a4b8e99cda3feed5dd7915e212be7ab47e40b843387e61b95dbfb26c6f8c5e2301d78a8d9172ad55a52aa", "hex"))),
+          tx.pure.vector("u8", Array.from(Buffer.from("029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964", "hex"))),
+          tx.pure.vector("u8", Array.from(Buffer.from("029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964", "hex"))),
         ],
       });
-
       const response = await mySuiClient.signAndExecuteTransaction({
         signer: userKeypair,
         transaction: tx,

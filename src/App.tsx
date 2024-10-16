@@ -14,7 +14,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
-const PBT_PACKAGE_ID = '0xde0bd3ebe2439cf58edb190d150c6d31df30056953f437c96965e830a8c23cc1'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+const PBT_PACKAGE_ID = '0x107d2c7cf12893d553844aa5d0b886f503ef56b2f32ee4e80963b7cbe23a0b35'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
 const ARCHIVE_OBJECT_ID = '0x44f652dcd235d0a29a8231c3a57459580812022fdc0e5a0bdb0af9e8d85c5a9d'//"0x57e282bb30b2410983d6c16d6dbdeb661f203e0cd2a480a57aedfbf81f551d78"
 
 

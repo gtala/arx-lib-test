@@ -51,6 +51,8 @@ function App() {
           scannedResult.signature.raw.r + scannedResult.signature.raw.s
       );
 
+      console.log("all", signature_final, pkey_final, digestMessage)
+
       const tx = new Transaction();
       tx.setGasBudget(2000000);
       tx.moveCall({

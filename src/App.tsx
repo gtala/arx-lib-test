@@ -18,7 +18,6 @@ const mapScannedMessage = new Map<string,string>([
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
 const PBT_PACKAGE_ID = '0x62c999921b5aa9232e80b4d3e13137e8fb7593a2d0a8d27c1b2928d3ae2196dc'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
-const message = '0x1e41bacaef7d6a7c1c82b1077d9833bda6d9427012ab4825bb2d129823432908'
 
 function App() {
 
@@ -33,11 +32,10 @@ function App() {
 
   async function btnReadChipAndMintPBT() {
 
-    //1) create signer KeyPair
     const {userKeypair, userAddress} = getUserKeyPairData();
     let scannedResult;
 
-    const digestMessage = createMsgDigestV2(message)
+    const digestMessage = createMsgDigest(userAddress)
 
     try {
       scannedResult = await execHaloCmdWeb({
@@ -51,7 +49,6 @@ function App() {
           scannedResult.signature.raw.r + scannedResult.signature.raw.s
       );
 
-
       const tx = new Transaction();
       tx.setGasBudget(2000000);
       tx.moveCall({
@@ -59,7 +56,7 @@ function App() {
         arguments: [
           tx.pure.vector("u8", signature_final),
           tx.pure.vector("u8",  pkey_final),
-          tx.pure.vector("u8", Array.from(Buffer.from("1e41bacaef7d6a7c1c82b1077d9833bda6d9427012ab4825bb2d129823432908", "hex"))),
+          tx.pure.vector("u8", bcs.Address.serialize(userAddress).toBytes()),
         ],
       });
       const response = await mySuiClient.signAndExecuteTransaction({
@@ -123,8 +120,7 @@ export const readTheCorrectPublicKey = async (
   return [pkey_final, signature_final];
 };
 
-export const createMsgDigestV2 =  (address: string) => {
-  console.log("address", address);
+export const createMsgDigest =  (address: string) => {
   const addr_bytes = bcs.Address.serialize(address).toBytes();
   const msgToDigest = new Uint8Array(addr_bytes.length);
   msgToDigest.set(addr_bytes);
@@ -136,7 +132,6 @@ export const createMsgDigestV2 =  (address: string) => {
 function uint8array2hex(uint8array: Uint8Array): string {
   return Buffer.from(uint8array).toString("hex");
 }
-
 
 
 export default App;

@@ -60,7 +60,7 @@ function App() {
         arguments: [
           tx.pure.vector("u8", signature_final),
           tx.pure.vector("u8", pkey_final),
-          tx.pure.vector("u8", Array.from(Buffer.from(digestMessage, "hex"))),
+          tx.pure.vector("u8", Array.from(Buffer.from(message, "hex"))),
         ],
       });
       const response = await mySuiClient.signAndExecuteTransaction({

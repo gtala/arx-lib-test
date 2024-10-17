@@ -17,7 +17,7 @@ const mapScannedMessage = new Map<string,string>([
     ])
 
 const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
-const PBT_PACKAGE_ID = '0xcdb598fa18496f01295b53c711f19b756de8f813368de6054c7f55ae061f603e'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
+const PBT_PACKAGE_ID = '0x62c999921b5aa9232e80b4d3e13137e8fb7593a2d0a8d27c1b2928d3ae2196dc'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
 const message = '0x1e41bacaef7d6a7c1c82b1077d9833bda6d9427012ab4825bb2d129823432908'
 
 function App() {

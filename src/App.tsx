@@ -52,17 +52,16 @@ function App() {
       );
 
       console.log("all", signature_final, pkey_final, digestMessage)
+      const addr_bytes = bcs.Address.serialize(message).toBytes();
 
       const tx = new Transaction();
       tx.setGasBudget(2000000);
       tx.moveCall({
         target:`${PBT_PACKAGE_ID}::signature::verify_signature_v2`,
         arguments: [
-         /* tx.pure.vector("u8", signature_final),
-          tx.pure.vector("u8", pkey_final),*/
-          tx.pure.vector("u8", Array.from(Buffer.from("c176bea47c1357b09e10fa8a9d1abcac15c16330d8951539747046b9a818f6fe2a6dd03a76f3146a74aad621e349b9a79386c62453edcda36d7e52adb23b2e80", "hex"))),
-          tx.pure.vector("u8",  Array.from(Buffer.from("029bef8d556d80e43ae7e0becb3a7e6838b95defe45896ed6075bb9035d06c9964", "hex"))),
-          tx.pure.vector("u8", Array.from(Buffer.from("a7c3877072f8773351e933adb59ce213b28a71371c3e7866baf44f9cb262ae97", "hex"))),
+          tx.pure.vector("u8", signature_final),
+          tx.pure.vector("u8", pkey_final),
+          tx.pure.vector("u8", addr_bytes),
         ],
       });
       const response = await mySuiClient.signAndExecuteTransaction({

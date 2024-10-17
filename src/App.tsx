@@ -51,8 +51,6 @@ function App() {
           scannedResult.signature.raw.r + scannedResult.signature.raw.s
       );
 
-      console.log("all", signature_final, pkey_final, digestMessage)
-      const addr_bytes = bcs.Address.serialize(message).toBytes();
 
       const tx = new Transaction();
       tx.setGasBudget(2000000);
@@ -60,8 +58,8 @@ function App() {
         target:`${PBT_PACKAGE_ID}::signature::verify_signature_v2`,
         arguments: [
           tx.pure.vector("u8", signature_final),
-          tx.pure.vector("u8", pkey_final),
-          tx.pure.vector("u8", addr_bytes),
+          tx.pure.vector("u8",  pkey_final),
+          tx.pure.vector("u8", Array.from(Buffer.from("1e41bacaef7d6a7c1c82b1077d9833bda6d9427012ab4825bb2d129823432908", "hex"))),
         ],
       });
       const response = await mySuiClient.signAndExecuteTransaction({

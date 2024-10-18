@@ -9,6 +9,8 @@ import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 import { sha256 } from "@noble/hashes/sha256";
 import { bcs } from "@mysten/sui/bcs";
+import {readTheCorrectPublicKey} from "./helpers/readResultFromChip";
+import QRCodeComponent from "./QRCodeComponent";
 
 const mapScannedMessage = new Map<string,string>([
     ["init", "Please tap the tag to the back of your smartphone and hold it..."],
@@ -20,6 +22,8 @@ const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
 const PBT_PACKAGE_ID = '0x62c999921b5aa9232e80b4d3e13137e8fb7593a2d0a8d27c1b2928d3ae2196dc'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
 
 function App() {
+  const {userKeypair, userAddress} = getUserKeyPairData();
+
 
   const [statusText, setStatusText] = useState('Click on the button');
 
@@ -32,7 +36,6 @@ function App() {
 
   async function btnReadChipAndMintPBT() {
 
-    const {userKeypair, userAddress} = getUserKeyPairData();
     let scannedResult;
 
     const digestMessage = createMsgDigest(userAddress)
@@ -79,10 +82,15 @@ function App() {
 
   return (
       <div className="App">
-            <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
+        <QRCodeComponent address={userAddress} commands={[{
+          name: "sign",
+          keyNo: 1,
+          digest: ""
+        }]} onScanComplete={(result)=>{ console.log(result)}}  show></QRCodeComponent>
+      {/*      <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
                 {statusText}
             </pre>
-        <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>
+        <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>*/}
       </div>
   );
 }
@@ -98,27 +106,6 @@ function getUserKeyPairData() {
   console.log("userAddress", userAddress)
   return {userKeypair, userAddress};
 }
-
-export const readTheCorrectPublicKey = async (
-    publicKeyDigest: string,
-    signatureDigest: string
-) => {
-  let pkey = Array.from(Buffer.from(publicKeyDigest, "hex"));
-  pkey.shift();
-  pkey = pkey.slice(0, 32);
-
-  // Depending on the last byte, unshift 2 or 3 to ensure the last number is even
-  if (pkey[pkey.length - 1] % 2 == 0) {
-    pkey.unshift(2);
-  } else {
-    pkey.unshift(3);
-  }
-
-  const pkey_final = Uint8Array.from(pkey);
-  const signature_final = Uint8Array.from(Buffer.from(signatureDigest, "hex"));
-
-  return [pkey_final, signature_final];
-};
 
 export const createMsgDigest =  (address: string) => {
   const addr_bytes = bcs.Address.serialize(address).toBytes();

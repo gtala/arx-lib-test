@@ -1,11 +1,9 @@
 import React, { useEffect, useState } from "react";
 //@ts-ignore
 import { execHaloCmdWeb } from "@arx-research/libhalo/api/web";
-import {
-  hexToUint8Array,
-  getSignatureAsUint8Array,
-} from "../../helpers/merch_nft/qrHelper"; // Import your utility functions
-import { readTheCorrectPublicKey } from "@/helpers/merch_nft/readResultFromChip";
+
+import {getSignatureAsUint8Array} from "./helpers/qrHelper";
+import {readTheCorrectPublicKey} from "./helpers/readResultFromChip";
 
 interface Command {
   name: string;

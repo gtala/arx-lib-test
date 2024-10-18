@@ -80,12 +80,15 @@ function App() {
     }
   }
 
+
+  const digestMessage = createMsgDigest(userAddress)
+
   return (
       <div className="App">
         <QRCodeComponent address={userAddress} commands={[{
           name: "sign",
           keyNo: 1,
-          digest: ""
+          digest: digestMessage
         }]} onScanComplete={(result)=>{ console.log(result)}}  show></QRCodeComponent>
       {/*      <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
                 {statusText}

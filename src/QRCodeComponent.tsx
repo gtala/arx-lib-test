@@ -87,13 +87,14 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
       <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
         {scanResult && (
-          <div>
-            <p>Public Key: {publicKeyFinal.toString()}</p>
-            <p>Signature: {signatureFinal}</p>
-          </div>
+            <div>
+              <p>Public Key: {publicKeyFinal.toString()}</p>
+              <p>Signature: {signatureFinal}</p>
+              <p>address: {address}</p>
+            </div>
         )}
         <button
-          onClick={onClose}
+            onClick={onClose}
           className="mt-4 w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
         >
           Close

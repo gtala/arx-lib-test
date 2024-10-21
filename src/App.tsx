@@ -14,6 +14,11 @@ interface VersionResponse {
   version: string; // Adjust based on the actual API response structure
 }
 
+interface ArgsResponse {
+    address: string;
+    digest: string
+}
+
 const mapScannedMessage = new Map<string,string>([
     ["init", "Please tap the tag to the back of your smartphone and hold it..."],
     ["retry", "Something went wrong, please try to tap the tag again..."],
@@ -28,8 +33,26 @@ function App() {
   const [statusText, setStatusText] = useState('Click on the button');
   const [addressQr, serAddressQr] = useState('');
   const [inputValue, setInputValue] = useState<string>('');
+    const [argsState, setArgsState] = useState<ArgsResponse>({} as ArgsResponse);
 
 
+    const getArgs = async (): Promise<ArgsResponse | undefined> => {
+        try {
+            const response = await fetch(`${inputValue}/version/args`);
+
+            // Check if the response is OK
+            if (!response.ok) {
+                throw new Error(`HTTP error! Status: ${response.status}`);
+            }
+
+            // Parse and return the JSON response
+            const data: ArgsResponse = await response.json();
+            console.log('Version Data:', data);
+            return data;
+        } catch (error) {
+            console.error('Error fetching ArgsResponse data:', error);
+        }
+    };
   const getVersionData = async (): Promise<VersionResponse | undefined> => {
     try {
       const response = await fetch(`${inputValue}/version/version2`);
@@ -56,17 +79,18 @@ function App() {
 
 
   async function btnReadChipAndMintPBT() {
-    serAddressQr(userAddress)
+    //serAddressQr(userAddress)
+    setArgsState((await getArgs())!)
   }
 
-  const digestMessage = createMsgDigest(userAddress)
+  //const digestMessage = createMsgDigest(userAddress)
 
   return (
       <div className="App">
-        <QRCodeComponent address={addressQr} commands={[{
+        <QRCodeComponent address={argsState?.address!} commands={[{
           name: "sign",
           keyNo: 1,
-          digest: digestMessage
+          digest: argsState?.digest!
         }]} onScanComplete={(result) => {
           console.log(result)
         }} show></QRCodeComponent>

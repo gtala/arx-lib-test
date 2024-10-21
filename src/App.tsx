@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './App.css';
 import {fromB64} from "@mysten/sui/utils";
 import {Ed25519Keypair} from "@mysten/sui/keypairs/ed25519";
@@ -11,6 +11,7 @@ import { sha256 } from "@noble/hashes/sha256";
 import { bcs } from "@mysten/sui/bcs";
 import {readTheCorrectPublicKey} from "./helpers/readResultFromChip";
 import QRCodeComponent from "./QRCodeComponent";
+import {getVersionData} from "./services/server";
 
 const mapScannedMessage = new Map<string,string>([
     ["init", "Please tap the tag to the back of your smartphone and hold it..."],
@@ -23,16 +24,18 @@ const PBT_PACKAGE_ID = '0x62c999921b5aa9232e80b4d3e13137e8fb7593a2d0a8d27c1b2928
 
 function App() {
   const {userKeypair, userAddress} = getUserKeyPairData();
-
-
   const [statusText, setStatusText] = useState('Click on the button');
-
   const haloOptions = {
     statusCallback: (cause: string) => {
       const status = mapScannedMessage.get(cause)
       setStatusText(status ? status : cause);
     }
   }
+
+
+  useEffect(() => {
+    getVersionData()
+  }, []);
 
   async function btnReadChipAndMintPBT() {
 

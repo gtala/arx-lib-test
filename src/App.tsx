@@ -6,34 +6,13 @@ import {Transaction} from "@mysten/sui/transactions";
 import {getFullnodeUrl, SuiClient} from "@mysten/sui/client";
 import {SUI_CLOCK_OBJECT_ID} from "@mysten/sui/utils";
 //@ts-ignore
-import {execHaloCmdWeb} from "@arx-research/libhalo/api/web.js";
 import { sha256 } from "@noble/hashes/sha256";
 import { bcs } from "@mysten/sui/bcs";
-import {readTheCorrectPublicKey} from "./helpers/readResultFromChip";
 import QRCodeComponent from "./QRCodeComponent";
-
 
 interface VersionResponse {
   version: string; // Adjust based on the actual API response structure
 }
-
-const getVersionData = async (): Promise<VersionResponse | undefined> => {
-  try {
-    const response = await fetch('https://a06d-152-171-119-6.ngrok-free.app/version2');
-
-    // Check if the response is OK
-    if (!response.ok) {
-      throw new Error(`HTTP error! Status: ${response.status}`);
-    }
-
-    // Parse and return the JSON response
-    const data: VersionResponse = await response.json();
-    console.log('Version Data:', data);
-    return data;
-  } catch (error) {
-    console.error('Error fetching version data:', error);
-  }
-};
 
 const mapScannedMessage = new Map<string,string>([
     ["init", "Please tap the tag to the back of your smartphone and hold it..."],
@@ -46,6 +25,28 @@ const PBT_PACKAGE_ID = '0x62c999921b5aa9232e80b4d3e13137e8fb7593a2d0a8d27c1b2928
 
 function App() {
 
+  const [statusText, setStatusText] = useState('Click on the button');
+  const [addressQr, serAddressQr] = useState('');
+  const [inputValue, setInputValue] = useState<string>('');
+
+
+  const getVersionData = async (): Promise<VersionResponse | undefined> => {
+    try {
+      const response = await fetch(`${inputValue}/version2`);
+
+      // Check if the response is OK
+      if (!response.ok) {
+        throw new Error(`HTTP error! Status: ${response.status}`);
+      }
+
+      // Parse and return the JSON response
+      const data: VersionResponse = await response.json();
+      console.log('Version Data:', data);
+      return data;
+    } catch (error) {
+      console.error('Error fetching version data:', error);
+    }
+  };
 
   useEffect(() => {
     getVersionData()
@@ -53,75 +54,31 @@ function App() {
   const {userKeypair, userAddress} = getUserKeyPairData();
 
 
-  const [statusText, setStatusText] = useState('Click on the button');
-
-  const haloOptions = {
-    statusCallback: (cause: string) => {
-      const status = mapScannedMessage.get(cause)
-      setStatusText(status ? status : cause);
-    }
-  }
-
   async function btnReadChipAndMintPBT() {
-
-    let scannedResult;
-
-    const digestMessage = createMsgDigest(userAddress)
-
-    try {
-      scannedResult = await execHaloCmdWeb({
-        name: "sign",
-        keyNo: 1,
-        digest: digestMessage
-      }, haloOptions);
-
-      let [pkey_final, signature_final] = await readTheCorrectPublicKey(
-          scannedResult.publicKey,
-          scannedResult.signature.raw.r + scannedResult.signature.raw.s
-      );
-
-      const tx = new Transaction();
-      tx.setGasBudget(2000000);
-      tx.moveCall({
-        target:`${PBT_PACKAGE_ID}::signature::verify_signature_v2`,
-        arguments: [
-          tx.pure.vector("u8", signature_final),
-          tx.pure.vector("u8",  pkey_final),
-          tx.pure.vector("u8", bcs.Address.serialize(userAddress).toBytes()),
-        ],
-      });
-      const response = await mySuiClient.signAndExecuteTransaction({
-        signer: userKeypair,
-        transaction: tx,
-        requestType: "WaitForLocalExecution",
-        options: {
-          showEffects: true,
-          showEvents: true,
-          showObjectChanges: true,
-        },
-      });
-
-      console.log(response.digest)
-      setStatusText(JSON.stringify(scannedResult, null, 4));
-    } catch (e) {
-      setStatusText('Scanning failed, click on the button again to retry. Details: ' + String(e));
-    }
+    serAddressQr(userAddress)
   }
-
 
   const digestMessage = createMsgDigest(userAddress)
 
   return (
       <div className="App">
-        <QRCodeComponent address={userAddress} commands={[{
+        <QRCodeComponent address={addressQr} commands={[{
           name: "sign",
           keyNo: 1,
           digest: digestMessage
-        }]} onScanComplete={(result)=>{ console.log(result)}}  show></QRCodeComponent>
-      {/*      <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
+        }]} onScanComplete={(result) => {
+          console.log(result)
+        }} show></QRCodeComponent>
+        <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
                 {statusText}
             </pre>
-        <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>*/}
+        <input
+            type="text"
+            value={inputValue}
+            onChange={(e) => setInputValue(e.target.value)}
+            placeholder="Enter your input"
+        />
+        <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>
       </div>
   );
 }

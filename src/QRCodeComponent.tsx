@@ -67,8 +67,10 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   };
 
   useEffect(() => {
-    console.log({ address, commands });
-    executeHaLoCommands();
+    if(address) {
+      console.log({address, commands});
+      executeHaLoCommands();
+    }
   }, [address, JSON.stringify(commands)]);
 
   useEffect(() => {

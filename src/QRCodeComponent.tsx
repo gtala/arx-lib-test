@@ -53,7 +53,6 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
           res.signature.raw.s,
           res.signature.raw.v
         );
-        console.log("signature", signature)
         setPublicKey(res.publicKey);
         setSignature(res.signature.raw.r + res.signature.raw.s);
         setScanResult({

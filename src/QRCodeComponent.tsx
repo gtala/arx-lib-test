@@ -15,14 +15,17 @@ interface QRCodeComponentProps {
   address: string;
   commands: Command[];
   onScanComplete: (result: any) => void;
+  sendResult: (body:any) => void
   show?: boolean;
   onClose?: () => void;
+
 }
 
 const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   address,
   commands,
   onScanComplete,
+  sendResult,
   show,
   onClose,
 }) => {
@@ -48,6 +51,9 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
       for (let cmd of commands) {
         // let res = await gate.execHaloCmd(cmd);
         const res = await execHaloCmdWeb(cmd);
+
+        sendResult(res)
+
         let signature = await getSignatureAsUint8Array(
           res.signature.raw.r,
           res.signature.raw.s,
@@ -84,6 +90,8 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   if (!show) {
     return null;
   }
+
+  console.log(publicKeyFinal)
 
   return (
     <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">

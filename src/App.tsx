@@ -19,7 +19,7 @@ interface VersionResponse {
 
 const getVersionData = async (): Promise<VersionResponse | undefined> => {
   try {
-    const response = await fetch('https://32fb-152-171-119-6.ngrok-free.app/version');
+    const response = await fetch('https://a06d-152-171-119-6.ngrok-free.app/version');
 
     // Check if the response is OK
     if (!response.ok) {

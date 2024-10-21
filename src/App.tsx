@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useEffect, useState} from 'react';
 import './App.css';
 import {fromB64} from "@mysten/sui/utils";
 import {Ed25519Keypair} from "@mysten/sui/keypairs/ed25519";
@@ -12,6 +12,29 @@ import { bcs } from "@mysten/sui/bcs";
 import {readTheCorrectPublicKey} from "./helpers/readResultFromChip";
 import QRCodeComponent from "./QRCodeComponent";
 
+
+interface VersionResponse {
+  version: string; // Adjust based on the actual API response structure
+}
+
+const getVersionData = async (): Promise<VersionResponse | undefined> => {
+  try {
+    const response = await fetch('https://4994-152-171-119-6.ngrok-free.app/version');
+
+    // Check if the response is OK
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // Parse and return the JSON response
+    const data: VersionResponse = await response.json();
+    console.log('Version Data:', data);
+    return data;
+  } catch (error) {
+    console.error('Error fetching version data:', error);
+  }
+};
+
 const mapScannedMessage = new Map<string,string>([
     ["init", "Please tap the tag to the back of your smartphone and hold it..."],
     ["retry", "Something went wrong, please try to tap the tag again..."],
@@ -22,6 +45,11 @@ const mySuiClient = new SuiClient({url: getFullnodeUrl("testnet")});
 const PBT_PACKAGE_ID = '0x62c999921b5aa9232e80b4d3e13137e8fb7593a2d0a8d27c1b2928d3ae2196dc'//'0x30da050ef8a0959023b2d5d25ff7a67c036745253c923d5e8361af2b717f6aa5'
 
 function App() {
+
+
+  useEffect(() => {
+    getVersionData()
+  }, []);
   const {userKeypair, userAddress} = getUserKeyPairData();
 
 

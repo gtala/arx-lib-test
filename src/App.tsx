@@ -49,8 +49,9 @@ function App() {
   };
 
   useEffect(() => {
-    getVersionData()
-  }, []);
+      if(inputValue)
+        getVersionData()
+  }, [inputValue]);
   const {userKeypair, userAddress} = getUserKeyPairData();
 
 

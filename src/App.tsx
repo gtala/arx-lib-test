@@ -32,7 +32,7 @@ function App() {
 
   const getVersionData = async (): Promise<VersionResponse | undefined> => {
     try {
-      const response = await fetch(`${inputValue}/version2`);
+      const response = await fetch(`${inputValue}/version/version2`);
 
       // Check if the response is OK
       if (!response.ok) {

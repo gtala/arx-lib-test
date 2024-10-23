@@ -1,9 +1,8 @@
 import React, { useEffect, useState } from "react";
 //@ts-ignore
 import { execHaloCmdWeb } from "@arx-research/libhalo/api/web";
-
-import {getSignatureAsUint8Array} from "./helpers/qrHelper";
 import {readTheCorrectPublicKey} from "./helpers/readResultFromChip";
+import {getSignatureAsUint8Array} from "./helpers/qrHelper";
 
 interface Command {
   name: string;
@@ -15,31 +14,29 @@ interface QRCodeComponentProps {
   address: string;
   commands: Command[];
   onScanComplete: (result: any) => void;
-  sendResult: (body:any) => void
   show?: boolean;
   onClose?: () => void;
-
 }
 
 const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
-  address,
-  commands,
-  onScanComplete,
-  sendResult,
-  show,
-  onClose,
-}) => {
+                                                           address,
+                                                           commands,
+                                                           onScanComplete,
+                                                           show,
+                                                           onClose,
+                                                         }) => {
   const [scanResult, setScanResult] = useState<any>(null);
 
   const [publicKey, setPublicKey] = useState("");
   const [signature, setSignature] = useState("");
   const [publicKeyFinal, setPublicKeyFinal] = useState(new Uint8Array());
   const [signatureFinal, setSignatureFinal] = useState(new Uint8Array());
+  const [chipScanResult, setChipScanResult] = useState();
 
   const final_pkey_and_sig = async () => {
     let [pkey_final, sig_final] = await readTheCorrectPublicKey(
-      publicKey,
-      signature
+        publicKey,
+        signature
     );
     setPublicKeyFinal(pkey_final);
     setSignatureFinal(sig_final);
@@ -51,14 +48,16 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
       for (let cmd of commands) {
         // let res = await gate.execHaloCmd(cmd);
         const res = await execHaloCmdWeb(cmd);
-
-        sendResult(res)
+        setChipScanResult(res)
+        console.log("res", res)
 
         let signature = await getSignatureAsUint8Array(
-          res.signature.raw.r,
-          res.signature.raw.s,
-          res.signature.raw.v
+            res.signature.raw.r,
+            res.signature.raw.s,
+            res.signature.raw.v
         );
+
+        console.log("signature", signature)
         setPublicKey(res.publicKey);
         setSignature(res.signature.raw.r + res.signature.raw.s);
         setScanResult({
@@ -73,16 +72,14 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   };
 
   useEffect(() => {
-    if(address) {
-      console.log({address, commands});
-      executeHaLoCommands();
-    }
+    console.log({ address, commands });
+    executeHaLoCommands();
   }, [address, JSON.stringify(commands)]);
 
   useEffect(() => {
     if (scanResult) {
       console.log("calling onScanComplete with scanResult: ", scanResult);
-      onScanComplete(scanResult); // Call the callback when scanResult is set
+      onScanComplete({chipScanResult, scanResult}); // Call the callback when scanResult is set
       final_pkey_and_sig();
     }
   }, [scanResult]);
@@ -91,26 +88,23 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
     return null;
   }
 
-  console.log(publicKeyFinal)
-
   return (
-    <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
-      <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
-        {scanResult && (
-            <div>
-              <p>Public Key: {publicKeyFinal.toString()}</p>
-              <p>Signature: {signatureFinal}</p>
-              <p>address: {address}</p>
-            </div>
-        )}
-        <button
-            onClick={onClose}
-          className="mt-4 w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
-        >
-          Close
-        </button>
+      <div className="fixed inset-0 bg-gray-900 bg-opacity-50 flex items-center justify-center">
+        <div className="bg-white p-6 rounded-md shadow-lg max-w-md w-full">
+          {scanResult && (
+              <div>
+                <p>Public Key: {publicKeyFinal.toString()}</p>
+                <p>Signature: {signatureFinal}</p>
+              </div>
+          )}
+          <button
+              onClick={onClose}
+              className="mt-4 w-full bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded"
+          >
+            Close
+          </button>
+        </div>
       </div>
-    </div>
   );
 };
 

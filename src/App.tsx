@@ -91,7 +91,7 @@ function App() {
                 onScanComplete={(result) => {
                    // sendResult(result.chipScanResult)
                     console.log("onScanComplete", result)
-                    VerifySignature(result.signature_final, result.pkey_final)
+                    VerifySignature(result.sig_final, result.pkey_final)
             }} show></QRCodeComponent>
 
             <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>

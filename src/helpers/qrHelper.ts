@@ -60,8 +60,8 @@ export const createMsgDigest = async (address: string, timestamp: number) => {
   console.log("timestamp", timestamp);
 
   const addr_bytes = bcs.ser("address", address).toBytes();
-  const ts_bytes = bcs.ser("u64", timestamp).toBytes();
-  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
+  //const ts_bytes = bcs.ser("u64", timestamp).toBytes();
+  const msgToDigest = new Uint8Array(addr_bytes.length) // + ts_bytes.length);
   msgToDigest.set(addr_bytes);
  // msgToDigest.set(ts_bytes, addr_bytes.length);
   const msgDigestHex = uint8array2hex(sha256(msgToDigest));

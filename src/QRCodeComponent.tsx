@@ -25,12 +25,15 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   const [signature, setSignature] = useState("");
   const [publicKeyFinal, setPublicKeyFinal] = useState(new Uint8Array());
   const [signatureFinal, setSignatureFinal] = useState(new Uint8Array());
-  const [chipScanResult, setChipScanResult] = useState();
+  const [chipScanResult, setChipScanResult] = useState("");
 
   const final_pkey_and_sig =  () => {
+
+    const scanResultJsonObject = JSON.parse(chipScanResult)
+    //3.From the results of the scan, create the final pkey and the signature like this:
     let [pkey_final, sig_final] =  readTheCorrectPublicKey(
-        publicKey,
-        signature
+        scanResultJsonObject.publicKey,
+        scanResultJsonObject.signature.raw.r + scanResultJsonObject.signature.raw.s
     );
 
     return [pkey_final, sig_final]
@@ -43,7 +46,9 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
       for (let cmd of commands) {
         // let res = await gate.execHaloCmd(cmd);
         const res = await execHaloCmdWeb(cmd);
-        setChipScanResult(res)
+        // Convert the result from object to string
+        const scanResultJsonString = JSON.stringify(res);
+        setChipScanResult(scanResultJsonString)
         console.log("res", res)
 
         let signature = await getSignatureAsUint8Array(

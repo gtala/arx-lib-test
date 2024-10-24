@@ -69,11 +69,13 @@ function App() {
             address
         } =  getUserData()
 
-        const [msgDigestHex, timestamp] = await createMsgDigest(
+        //1. For creating the msgDigest, use this (just ignore the timestamp and create the message with the address):
+        const [msgDigestHex, ] = await createMsgDigest(
             address!,
             Date.now()
         );
 
+        //2. Then, manage the results like this:
         const myCommand = {
             name: "sign",
             keyNo: 1,
@@ -89,6 +91,7 @@ function App() {
                 address={argsState?.address!}
                 commands={[command]}
                 onScanComplete={(result) => {
+                    //only for backend call
                    // sendResult(result.chipScanResult)
                     console.log("onScanComplete", result)
                     VerifySignature(result.sig_final, result.pkey_final)

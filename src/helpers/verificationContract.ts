@@ -32,10 +32,16 @@ export const VerifySignature = async (signature_final:  Uint8Array, pkey_final: 
         userKeypair,
     }  = getUserData()
 
+    const targetSC : `${string}::${string}::${string}` = `${PBT_PACKAGE_ID}::signature::verify_signature_v3`
+
+    console.log("calling smart contract...")
+    console.log(targetSC)
+
     const tx = new TransactionBlock();
     tx.setGasBudget(2000000)
     tx.moveCall({
-        target: `${PBT_PACKAGE_ID}::signature::verify_signature_v3`,
+        target: targetSC,
+        //4. And when you try to call the move function, use:
         arguments: [
             tx.pure(Array.from(signature_final)),
             tx.pure(Array.from(pkey_final)),

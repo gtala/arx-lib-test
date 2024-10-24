@@ -1,3 +1,5 @@
+import { bcs } from "@mysten/sui.js/bcs";
+import { sha256 } from "@noble/hashes/sha256";
 export const getSignatureAsUint8Array = async (
   r: string,
   s: string,
@@ -51,3 +53,28 @@ export const generateMessage = (address: string) => {
 
   return [msgToSignBytes, now_timestamp];
 };
+
+
+export const createMsgDigest = async (address: string, timestamp: number) => {
+  console.log("address", address);
+  console.log("timestamp", timestamp);
+
+  const addr_bytes = bcs.ser("address", address).toBytes();
+  const ts_bytes = bcs.ser("u64", timestamp).toBytes();
+  const msgToDigest = new Uint8Array(addr_bytes.length + ts_bytes.length);
+  msgToDigest.set(addr_bytes);
+ // msgToDigest.set(ts_bytes, addr_bytes.length);
+  const msgDigestHex = uint8array2hex(sha256(msgToDigest));
+
+  return [msgDigestHex, timestamp];
+};
+
+function uint8array2hex(uint8array: Uint8Array): string {
+  return Buffer.from(uint8array).toString("hex");
+}
+
+export interface Command {
+  name: string;
+  digest: string;
+  keyNo: number;
+}

@@ -2,17 +2,22 @@ import React, { useState} from 'react';
 import './App.css';
 
 import QRCodeComponent from "./QRCodeComponent";
+import {Command, createMsgDigest} from "./helpers/qrHelper";
 
 interface ArgsResponse {
     address: string;
     digest: string
 }
 
+
 function App() {
 
     const [statusText, setStatusText] = useState('Click on the button');
     const [inputValue, setInputValue] = useState<string>('');
     const [argsState, setArgsState] = useState<ArgsResponse>({} as ArgsResponse);
+    const [command, setCommand] = useState<Command>({} as Command)
+
+
 
     const getArgs = async (): Promise<ArgsResponse | undefined> => {
         try {
@@ -57,19 +62,27 @@ function App() {
     };
 
     async function btnReadChipAndMintPBT() {
-        setArgsState((await getArgs())!)
+        const args = await getArgs()
+
+        const [msgDigestHex, timestamp] = await createMsgDigest(
+            args?.address!,
+            Date.now()
+        );
+
+        const myCommand = {
+            name: "sign",
+            keyNo: 1,
+            digest: msgDigestHex.toString(),
+        };
+
+        setCommand(myCommand)
     }
 
     return (
         <div className="App">
             <QRCodeComponent
-
                 address={argsState?.address!}
-                commands={[{
-                            name: "sign",
-                            keyNo: 1,
-                            digest: argsState?.digest!
-                }]}
+                commands={[command]}
                 onScanComplete={(result) => {
                     sendResult(result.chipScanResult)
             }} show></QRCodeComponent>

@@ -2,13 +2,7 @@ import React, { useEffect, useState } from "react";
 //@ts-ignore
 import { execHaloCmdWeb } from "@arx-research/libhalo/api/web";
 import {readTheCorrectPublicKey} from "./helpers/readResultFromChip";
-import {getSignatureAsUint8Array} from "./helpers/qrHelper";
-
-interface Command {
-  name: string;
-  digest: string;
-  keyNo: number;
-}
+import {Command, getSignatureAsUint8Array} from "./helpers/qrHelper";
 
 interface QRCodeComponentProps {
   address: string;
@@ -73,6 +67,8 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
 
   useEffect(() => {
     console.log({ address, commands });
+
+    if(commands.length > 0)
     executeHaLoCommands();
   }, [address, JSON.stringify(commands)]);
 

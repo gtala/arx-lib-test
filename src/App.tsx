@@ -3,12 +3,12 @@ import './App.css';
 
 import QRCodeComponent from "./QRCodeComponent";
 import {Command, createMsgDigest} from "./helpers/qrHelper";
+import {getUserData, VerifySignature} from "./helpers/verificationContract";
 
 interface ArgsResponse {
     address: string;
     digest: string
 }
-
 
 function App() {
 
@@ -16,7 +16,6 @@ function App() {
     const [inputValue, setInputValue] = useState<string>('');
     const [argsState, setArgsState] = useState<ArgsResponse>({} as ArgsResponse);
     const [command, setCommand] = useState<Command>({} as Command)
-
 
 
     const getArgs = async (): Promise<ArgsResponse | undefined> => {
@@ -62,10 +61,16 @@ function App() {
     };
 
     async function btnReadChipAndMintPBT() {
-        const args = await getArgs()
+        //for server side contract call only
+        //const args = await getArgs()
+
+        const {
+            userKeypair,
+            address
+        } =  getUserData()
 
         const [msgDigestHex, timestamp] = await createMsgDigest(
-            args?.address!,
+            address!,
             Date.now()
         );
 
@@ -84,18 +89,21 @@ function App() {
                 address={argsState?.address!}
                 commands={[command]}
                 onScanComplete={(result) => {
-                    sendResult(result.chipScanResult)
+                   // sendResult(result.chipScanResult)
+                    console.log("onScanComplete", result)
+                    VerifySignature(result.signature_final, result.pkey_final)
             }} show></QRCodeComponent>
 
             <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
                 {statusText}
             </pre>
-            <input
+           {/* for server side contract call only */}
+     {/*       <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Enter your input"
-            />
+            />*/}
             <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>
         </div>
     );

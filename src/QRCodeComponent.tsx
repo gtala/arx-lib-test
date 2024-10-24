@@ -27,13 +27,14 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
   const [signatureFinal, setSignatureFinal] = useState(new Uint8Array());
   const [chipScanResult, setChipScanResult] = useState();
 
-  const final_pkey_and_sig = async () => {
-    let [pkey_final, sig_final] = await readTheCorrectPublicKey(
+  const final_pkey_and_sig =  () => {
+    let [pkey_final, sig_final] =  readTheCorrectPublicKey(
         publicKey,
         signature
     );
-    setPublicKeyFinal(pkey_final);
-    setSignatureFinal(sig_final);
+
+    return [pkey_final, sig_final]
+
   };
 
   const executeHaLoCommands = async () => {
@@ -74,9 +75,10 @@ const QRCodeComponent: React.FC<QRCodeComponentProps> = ({
 
   useEffect(() => {
     if (scanResult) {
-      console.log("calling onScanComplete with scanResult: ", scanResult);
-      onScanComplete({chipScanResult, scanResult}); // Call the callback when scanResult is set
-      final_pkey_and_sig();
+      let [pkey_final, sig_final]  = final_pkey_and_sig();
+      onScanComplete({chipScanResult, scanResult,  pkey_final, sig_final}); // Call the callback when scanResult is set
+      setPublicKeyFinal(pkey_final);
+      setSignatureFinal(sig_final);
     }
   }, [scanResult]);
 

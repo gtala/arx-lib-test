@@ -1,4 +1,4 @@
-export const readTheCorrectPublicKey = async (
+export const readTheCorrectPublicKey =  (
   publicKeyDigest: string,
   signatureDigest: string
 ) => {

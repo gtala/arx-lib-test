@@ -92,7 +92,7 @@ function App() {
                 commands={[command]}
                 onScanComplete={(result) => {
                     //only for backend call
-                   // sendResult(result.chipScanResult)
+                    sendResult(result.chipScanResult)
                     console.log("onScanComplete", result)
                     VerifySignature(result.sig_final, result.pkey_final)
             }} show></QRCodeComponent>
@@ -101,12 +101,12 @@ function App() {
                 {statusText}
             </pre>
            {/* for server side contract call only */}
-     {/*       <input
+            <input
                 type="text"
                 value={inputValue}
                 onChange={(e) => setInputValue(e.target.value)}
                 placeholder="Enter your input"
-            />*/}
+            />
             <button onClick={() => btnReadChipAndMintPBT()}>Sign message using key #1</button>
         </div>
     );

@@ -92,7 +92,7 @@ function App() {
                 commands={[command]}
                 onScanComplete={(result) => {
                     //only for backend call
-                    sendResult(result.chipScanResult)
+                    sendResult(JSON.parse(result.chipScanResult))
                     console.log("onScanComplete", result)
                     VerifySignature(result.sig_final, result.pkey_final)
             }} show></QRCodeComponent>

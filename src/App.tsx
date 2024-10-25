@@ -93,8 +93,8 @@ function App() {
                 onScanComplete={(result) => {
                     //only for backend call
                     sendResult(JSON.parse(result.chipScanResult))
-                    console.log("onScanComplete", result)
-                    VerifySignature(result.sig_final, result.pkey_final)
+                    //console.log("onScanComplete", result)
+                    //VerifySignature(result.sig_final, result.pkey_final)
             }} show></QRCodeComponent>
 
             <pre style={{fontSize: 12, textAlign: "left", whiteSpace: "pre-wrap", wordWrap: "break-word"}}>
